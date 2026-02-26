@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resseguro XL | Institutional Dashboard</title>
+    <link rel="stylesheet" href="/frontend/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="theme-dark">
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar-panel">
+            <header class="sidebar-header">
+                <div class="logo">XL</div>
+                <h1 class="sidebar-title">Simulador Resseguro</h1>
+            </header>
+
+            <section class="controls-section">
+                <div class="control-group">
+                    <label for="prioridade" class="control-label">Prioridade / Franquia <span>(em Milhões
+                            R$)</span></label>
+                    <div class="input-wrapper">
+                        <span class="currency-prefix">R$</span>
+                        <input type="number" id="prioridade" class="control-input" value="20" step="1" min="0">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="capacidade" class="control-label">Capacidade / Limite <span>(em Milhões
+                            R$)</span></label>
+                    <div class="input-wrapper">
+                        <span class="currency-prefix">R$</span>
+                        <input type="number" id="capacidade" class="control-input" value="50" step="1" min="0">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="uf" class="control-label">Unidade Federativa <span>(Agregação)</span></label>
+                    <div class="select-wrapper">
+                        <select id="uf" class="control-select">
+                            <option value="Todas">Análise Nacional (Todas)</option>
+                            <option value="SP">São Paulo (SP)</option>
+                            <option value="PR">Paraná (PR)</option>
+                            <option value="RS">Rio Grande do Sul (RS)</option>
+                            <option value="MG">Minas Gerais (MG)</option>
+                            <option value="GO">Goiás (GO)</option>
+                            <option value="MT">Mato Grosso (MT)</option>
+                            <option value="MS">Mato Grosso do Sul (MS)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- ALERTA DE CATÁSTROFE (ML SWITCH) -->
+                <div class="control-group cat-modeling-group"
+                    style="margin-top: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                    <div class="control-label stress-label"
+                        style="margin-bottom: 0.8rem; color: #f59e0b; display: flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        Catastrophe Modeling <span>(Predictive ML)</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="ml-stress-toggle">
+                        <span class="slider round"></span>
+                        <span class="toggle-text">Ativar Estresse Climático (El Niño Severe CAT Model)</span>
+                    </label>
+                </div>
+            </section>
+
+            <footer class="sidebar-footer">
+                <div class="status-indicator">
+                    <div class="status-dot pulse"></div>
+                    <span>API Conectada</span>
+                </div>
+            </footer>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-dashboard">
+            <header class="dashboard-header">
+                <h2>Visão de Exposição da Carteira Rural</h2>
+                <p class="subtitle">Análise de Risco Não-Proporcional (Ramo 11)</p>
+            </header>
+
+            <!-- KPIs -->
+            <section class="metrics-grid">
+                <article class="metric-card">
+                    <div class="metric-header">
+                        <h3>Sinistro Bruto (Loss Ratio)</h3>
+                    </div>
+                    <div class="metric-body">
+                        <span class="metric-value" id="kpi-sinistro-bruto">R$ 0,00</span>
+                    </div>
+                </article>
+
+                <article class="metric-card" id="card-retencao">
+                    <div class="metric-header">
+                        <h3>Retenção Líquida (Seguradora)</h3>
+                        <span class="badge" id="kpi-sinistralidade-retida">0.0% Sinistralidade</span>
+                    </div>
+                    <div class="metric-body">
+                        <span class="metric-value" id="kpi-retencao">R$ 0,00</span>
+                    </div>
+                </article>
+
+                <article class="metric-card highlight-blue">
+                    <div class="metric-header">
+                        <h3>Recuperação RE (Cessão)</h3>
+                    </div>
+                    <div class="metric-body">
+                        <span class="metric-value" id="kpi-recuperacao">R$ 0,00</span>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Chart -->
+            <section class="chart-panel">
+                <header class="chart-header">
+                    <h3>Exposição Financeira por Unidade Federativa</h3>
+                </header>
+                <div class="canvas-container">
+                    <canvas id="exposure-chart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="/frontend/app.js?v=2.0"></script>
+</body>
+
+</html>

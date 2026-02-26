@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Temporary and log files
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+
+# IDE and Editor folders
+.vscode/
+.idea/
+
+# Agent/skills tracking
+.agent/
+.gemini/
+walkthrough.md
+*_analysis.json
+*_validation.json
+*_results.json
+local_config.md
+
+# Ignoring specific paths just in case
+node_modules/
