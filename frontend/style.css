@@ -1,0 +1,405 @@
+/* INSTITUTIONAL CORPORATE THEME - RESSEGURO XL */
+
+:root {
+    --bg-app: #0a0a0a;
+    --bg-surface: #121212;
+    --bg-elevated: #1a1a1a;
+
+    --text-primary: #ffffff;
+    --text-secondary: #a1a1aa;
+    --text-muted: #52525b;
+
+    --border-color: #27272a;
+    --border-highlight: #3f3f46;
+
+    --brand-blue: #2563eb;
+    --brand-blue-light: #3b82f6;
+
+    --danger-base: #dc2626;
+    --danger-light: #ef4444;
+    --danger-bg: rgba(220, 38, 38, 0.1);
+
+    --success-base: #16a34a;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+body.theme-dark {
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    overflow-x: hidden;
+}
+
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar-panel {
+    width: 320px;
+    background-color: var(--bg-surface);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    z-index: 10;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 3rem;
+}
+
+.logo {
+    background: linear-gradient(135deg, var(--brand-blue), var(--brand-blue-light));
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    letter-spacing: 1px;
+}
+
+.sidebar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex-grow: 1;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.control-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+}
+
+.control-label span {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.input-wrapper,
+.select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-wrapper:focus-within,
+.select-wrapper:focus-within {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 1px var(--brand-blue);
+}
+
+.currency-prefix {
+    padding-left: 12px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.control-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 12px;
+    font-size: 14px;
+    outline: none;
+    padding-left: 8px;
+}
+
+.control-select {
+    width: 100%;
+    background-color: var(--bg-elevated);
+    /* Força o Windows a pintar as options de escuro */
+    border: none;
+    color: var(--text-primary);
+    padding: 12px;
+    font-size: 14px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.control-select option {
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--success-base);
+    border-radius: 50%;
+}
+
+.pulse {
+    animation: pulse-animation 2s infinite;
+}
+
+@keyframes pulse-animation {
+    0% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+    }
+}
+
+/* Dashboard Main View */
+.main-dashboard {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 3rem;
+    gap: 2rem;
+    overflow-y: auto;
+    max-height: 100vh;
+}
+
+.dashboard-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.dashboard-header .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* KPI Cards Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.metric-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: background-color 0.4s ease, border-color 0.4s ease, transform 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.metric-header h3 {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+}
+
+.badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background-color: var(--bg-elevated);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+/* Blue Highlight Base */
+.highlight-blue {
+    border-left: 3px solid var(--brand-blue);
+}
+
+.highlight-blue .metric-value {
+    color: var(--brand-blue-light);
+}
+
+/* Red Alert Dynamic Class */
+#card-retencao.alert-critical {
+    background-color: var(--danger-bg);
+    border-color: var(--danger-base);
+    box-shadow: 0 0 15px rgba(220, 38, 38, 0.15);
+}
+
+#card-retencao.alert-critical .metric-value,
+#card-retencao.alert-critical .badge {
+    color: var(--danger-light);
+}
+
+#card-retencao.alert-critical .badge {
+    border-color: var(--danger-base);
+    background-color: transparent;
+}
+
+/* Chart Container */
+.chart-panel {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 400px;
+}
+
+.chart-header {
+    margin-bottom: 1rem;
+}
+
+.chart-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.canvas-container {
+    flex-grow: 1;
+    position: relative;
+    width: 100%;
+}
+
+/* --------------------------------------
+   MLOps STRESS UI ALERT (Catastrophe Mode) 
+   -------------------------------------- */
+
+.toggle-switch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background-color: var(--border-highlight);
+    border-radius: 34px;
+    transition: .4s;
+    flex-shrink: 0;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+    box-shadow: var(--shadow-sm);
+}
+
+input:checked+.slider {
+    background-color: #f59e0b;
+    /* Amber corporativo de alerta */
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #f59e0b;
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Stress Mode Transition nas métricas */
+body.theme-dark.stress-mode .metric-card {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.05);
+}
+
+body.theme-dark.stress-mode .main-dashboard {
+    background: radial-gradient(circle at top center, rgba(245, 158, 11, 0.03) 0%, transparent 70%);
+}
