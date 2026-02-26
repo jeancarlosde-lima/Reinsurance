@@ -6,8 +6,8 @@
 
 // --- 1. UTILITIES & CONFIGURATIONS ---
 const CONFIG = {
-    API_URL_NORMAL: 'http://localhost:8000/api/calculate',
-    API_URL_STRESS: 'http://localhost:8000/api/predict-stress',
+    API_URL_NORMAL: '/api/calculate',
+    API_URL_STRESS: '/api/predict-stress',
     DEBOUNCE_DELAY: 350,
     COLORS: {
         RETENCAO: '#dc2626',      // Institutional Red (Danger)
