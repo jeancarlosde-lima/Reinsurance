@@ -21,7 +21,15 @@ const CONFIG = {
 const Formatters = {
     currency: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }),
     percent: new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 1 }),
-    compact: (val) => 'R$ ' + (val / 1000000).toFixed(0) + 'M'
+    compact: (val) => 'R$ ' + (val / 1000000).toFixed(0) + 'M',
+    // KPIs em bilhões/milhões: com centavos, R$ 7.945.808.599,66 estourava o cartão
+    big: (val) => {
+        const abs = Math.abs(val);
+        const fmt = (n, casas) => n.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+        if (abs >= 1e9) return `R$ ${fmt(val / 1e9, 2)} bi`;
+        if (abs >= 1e6) return `R$ ${fmt(val / 1e6, 1)} mi`;
+        return `R$ ${fmt(val, 0)}`;
+    }
 };
 
 const debounce = (func, delay) => {
@@ -182,16 +190,27 @@ class UIController {
         this.inputs = {
             priority: document.getElementById('prioridade'),
             capacity: document.getElementById('capacidade'),
+            rate: document.getElementById('taxa'),
             uf: document.getElementById('uf'),
             mlToggle: document.getElementById('ml-stress-toggle')
         };
 
         this.kpis = {
             sinBruto: document.getElementById('kpi-sinistro-bruto'),
+            sinBrutaBadge: document.getElementById('kpi-sinistralidade-bruta'),
+            recuperacao: document.getElementById('kpi-recuperacao'),
+            custo: document.getElementById('kpi-custo'),
+            beneficioBadge: document.getElementById('kpi-beneficio'),
             retencao: document.getElementById('kpi-retencao'),
             retencaoAlertBox: document.getElementById('card-retencao'),
-            retencaoBadge: document.getElementById('kpi-sinistralidade-retida'),
-            recuperacao: document.getElementById('kpi-recuperacao')
+            retencaoBadge: document.getElementById('kpi-sinistralidade-retida')
+        };
+
+        this.hints = {
+            priority: document.getElementById('hint-prioridade'),
+            capacity: document.getElementById('hint-capacidade'),
+            rate: document.getElementById('hint-taxa'),
+            scope: document.getElementById('scope-note')
         };
 
         this.chartManager = new ChartManager('exposure-chart');
@@ -215,6 +234,7 @@ class UIController {
             const payload = {
                 prioridade: parseFloat(this.inputs.priority.value) || 0,
                 capacidade: parseFloat(this.inputs.capacity.value) || 0,
+                taxa_rol: parseFloat(this.inputs.rate.value) || 0,
                 uf: this.inputs.uf.value
             };
 
@@ -231,6 +251,7 @@ class UIController {
         // Eventos nativos e dinâmicos
         this.inputs.priority.addEventListener('input', handleInput);
         this.inputs.capacity.addEventListener('input', handleInput);
+        this.inputs.rate.addEventListener('input', handleInput);
         this.inputs.uf.addEventListener('change', handleInput);
         this.inputs.mlToggle.addEventListener('change', handleInput);
 
@@ -242,13 +263,40 @@ class UIController {
         if (!data) return;
 
         // Textos KPIs Monetários
-        this.kpis.sinBruto.innerText = Formatters.currency.format(data.Sinistro_Bruto);
-        this.kpis.retencao.innerText = Formatters.currency.format(data.Retencao_Liquida);
-        this.kpis.recuperacao.innerText = Formatters.currency.format(data.Recuperacao_RE);
+        this.kpis.sinBruto.innerText = Formatters.big(data.Sinistro_Bruto);
+        this.kpis.sinBrutaBadge.innerText = `${Formatters.percent.format(data.Sinistralidade_Bruta / 100)} Sinistralidade`;
+        this.kpis.recuperacao.innerText = Formatters.big(data.Recuperacao_RE);
+        this.kpis.custo.innerText = Formatters.big(data.Premio_Resseguro);
+        this.kpis.retencao.innerText = Formatters.big(data.Retencao_Liquida);
 
-        // Lógica de Alerta de Sinistralidade (80%)
+        // Benefício = recuperação − custo. Negativo num ano bom é o normal:
+        // é o preço da proteção para o ano ruim.
+        const beneficio = data.Beneficio_Resseguro;
+        const sinal = beneficio >= 0 ? '+' : '−';
+        this.kpis.beneficioBadge.innerText = `Benefício ${sinal}${Formatters.compact(Math.abs(beneficio))}`;
+        this.kpis.beneficioBadge.classList.toggle('badge-positive', beneficio > 0);
+        this.kpis.beneficioBadge.classList.toggle('badge-negative', beneficio < 0);
+
+        // Equivalências em pontos de sinistralidade, sobre o prêmio NACIONAL
+        // (o contrato é nacional, então é a base certa para ler a camada)
+        const contrato = data.contrato || data;
+        const premioNacional = contrato.Premio_Total;
+        if (premioNacional > 0) {
+            const p = (parseFloat(this.inputs.priority.value) || 0) * 1e6;
+            const c = (parseFloat(this.inputs.capacity.value) || 0) * 1e6;
+            const pts = (v) => (100 * v / premioNacional).toFixed(1).replace('.', ',');
+            this.hints.priority.innerText = `Dispara acima de ${pts(p)}% de sinistralidade da carteira`;
+            this.hints.capacity.innerText = `Cobre até ${pts(c)} pontos de sinistralidade acima da prioridade`;
+            this.hints.rate.innerText = `Custo do contrato: ${Formatters.compact(contrato.Premio_Resseguro)} (${pts(contrato.Premio_Resseguro)} pontos)`;
+        }
+
+        this.hints.scope.innerText = data.escopo && data.escopo !== 'Todas'
+            ? `Mostrando a parcela de ${data.escopo} no contrato nacional`
+            : '';
+
+        // Lógica de Alerta de Sinistralidade líquida (80%)
         const sinRetidaPct = data.Sinistralidade_Retida / 100;
-        this.kpis.retencaoBadge.innerText = `${Formatters.percent.format(sinRetidaPct)} Sinistralidade`;
+        this.kpis.retencaoBadge.innerText = `${Formatters.percent.format(sinRetidaPct)} Sinistralidade líquida`;
 
         if (sinRetidaPct > 0.80) {
             this.kpis.retencaoAlertBox.classList.add('alert-critical');

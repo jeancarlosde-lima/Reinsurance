@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resseguro XL | Institutional Dashboard</title>
+    <title>XL Agregado | Simulador de Resseguro Rural</title>
     <link rel="stylesheet" href="/frontend/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -15,33 +15,42 @@
         <aside class="sidebar-panel">
             <header class="sidebar-header">
                 <div class="logo">XL</div>
-                <h1 class="sidebar-title">Simulador Resseguro</h1>
+                <h1 class="sidebar-title">XL Agregado</h1>
             </header>
 
             <section class="controls-section">
                 <div class="control-group">
-                    <label for="prioridade" class="control-label">Prioridade / Franquia <span>(em Milhões
-                            R$)</span></label>
+                    <label for="prioridade" class="control-label">Prioridade agregada anual <span>(R$ milhões)</span></label>
                     <div class="input-wrapper">
                         <span class="currency-prefix">R$</span>
-                        <input type="number" id="prioridade" class="control-input" value="20" step="1" min="0">
+                        <input type="number" id="prioridade" class="control-input" value="8300" step="100" min="0">
                     </div>
+                    <span class="control-hint" id="hint-prioridade"></span>
                 </div>
 
                 <div class="control-group">
-                    <label for="capacidade" class="control-label">Capacidade / Limite <span>(em Milhões
-                            R$)</span></label>
+                    <label for="capacidade" class="control-label">Capacidade da camada <span>(R$ milhões)</span></label>
                     <div class="input-wrapper">
                         <span class="currency-prefix">R$</span>
-                        <input type="number" id="capacidade" class="control-input" value="50" step="1" min="0">
+                        <input type="number" id="capacidade" class="control-input" value="2900" step="100" min="0">
                     </div>
+                    <span class="control-hint" id="hint-capacidade"></span>
                 </div>
 
                 <div class="control-group">
-                    <label for="uf" class="control-label">Unidade Federativa <span>(Agregação)</span></label>
+                    <label for="taxa" class="control-label">Taxa do contrato <span>(rate on line, % da capacidade)</span></label>
+                    <div class="input-wrapper">
+                        <span class="currency-prefix">%</span>
+                        <input type="number" id="taxa" class="control-input" value="10" step="0.5" min="0" max="100">
+                    </div>
+                    <span class="control-hint" id="hint-taxa"></span>
+                </div>
+
+                <div class="control-group">
+                    <label for="uf" class="control-label">Recorte de leitura <span>(UF)</span></label>
                     <div class="select-wrapper">
                         <select id="uf" class="control-select">
-                            <option value="Todas">Análise Nacional (Todas)</option>
+                            <option value="Todas">Carteira nacional</option>
                             <option value="SP">São Paulo (SP)</option>
                             <option value="PR">Paraná (PR)</option>
                             <option value="RS">Rio Grande do Sul (RS)</option>
@@ -51,9 +60,10 @@
                             <option value="MS">Mato Grosso do Sul (MS)</option>
                         </select>
                     </div>
+                    <span class="control-hint">O contrato é um só, nacional. A UF mostra a parcela que lhe cabe.</span>
                 </div>
 
-                <!-- ALERTA DE CATÁSTROFE (ML SWITCH) -->
+                <!-- ESTRESSE CLIMÁTICO (ML) -->
                 <div class="control-group cat-modeling-group"
                     style="margin-top: 1rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
                     <div class="control-label stress-label"
@@ -66,12 +76,12 @@
                             <line x1="12" y1="9" x2="12" y2="13"></line>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
-                        Catastrophe Modeling <span>(Predictive ML)</span>
+                        Estresse climático <span>(ML)</span>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="ml-stress-toggle">
                         <span class="slider round"></span>
-                        <span class="toggle-text">Ativar Estresse Climático (El Niño Severe CAT Model)</span>
+                        <span class="toggle-text">Simular El Niño severo (granizo no Sul)</span>
                     </label>
                 </div>
             </section>
@@ -87,37 +97,49 @@
         <!-- Main Content -->
         <main class="main-dashboard">
             <header class="dashboard-header">
-                <h2>Visão de Exposição da Carteira Rural</h2>
-                <p class="subtitle">Análise de Risco Não-Proporcional (Ramo 11)</p>
+                <h2>Excesso de Danos Agregado — Carteira Rural</h2>
+                <p class="subtitle">Prioridade e limite sobre o sinistro acumulado do ano, não por evento (Grupo 11)</p>
+                <p class="scope-note" id="scope-note"></p>
             </header>
 
             <!-- KPIs -->
             <section class="metrics-grid">
                 <article class="metric-card">
                     <div class="metric-header">
-                        <h3>Sinistro Bruto (Loss Ratio)</h3>
+                        <h3>Sinistro Bruto</h3>
+                        <span class="badge" id="kpi-sinistralidade-bruta">0,0% Sinistralidade</span>
                     </div>
                     <div class="metric-body">
                         <span class="metric-value" id="kpi-sinistro-bruto">R$ 0,00</span>
                     </div>
                 </article>
 
-                <article class="metric-card" id="card-retencao">
-                    <div class="metric-header">
-                        <h3>Retenção Líquida (Seguradora)</h3>
-                        <span class="badge" id="kpi-sinistralidade-retida">0.0% Sinistralidade</span>
-                    </div>
-                    <div class="metric-body">
-                        <span class="metric-value" id="kpi-retencao">R$ 0,00</span>
-                    </div>
-                </article>
-
                 <article class="metric-card highlight-blue">
                     <div class="metric-header">
-                        <h3>Recuperação RE (Cessão)</h3>
+                        <h3>Recuperação do Resseguro</h3>
                     </div>
                     <div class="metric-body">
                         <span class="metric-value" id="kpi-recuperacao">R$ 0,00</span>
+                    </div>
+                </article>
+
+                <article class="metric-card">
+                    <div class="metric-header">
+                        <h3>Custo do Resseguro</h3>
+                        <span class="badge" id="kpi-beneficio">Benefício R$ 0</span>
+                    </div>
+                    <div class="metric-body">
+                        <span class="metric-value" id="kpi-custo">R$ 0,00</span>
+                    </div>
+                </article>
+
+                <article class="metric-card" id="card-retencao">
+                    <div class="metric-header">
+                        <h3>Retenção Líquida</h3>
+                        <span class="badge" id="kpi-sinistralidade-retida">0,0% Sinistralidade</span>
+                    </div>
+                    <div class="metric-body">
+                        <span class="metric-value" id="kpi-retencao">R$ 0,00</span>
                     </div>
                 </article>
             </section>
@@ -125,7 +147,7 @@
             <!-- Chart -->
             <section class="chart-panel">
                 <header class="chart-header">
-                    <h3>Exposição Financeira por Unidade Federativa</h3>
+                    <h3>Contrato nacional alocado por Unidade Federativa</h3>
                 </header>
                 <div class="canvas-container">
                     <canvas id="exposure-chart"></canvas>
@@ -135,7 +157,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="/frontend/app.js?v=2.0"></script>
+    <script type="module" src="/frontend/app.js?v=3.1"></script>
 </body>
 
 </html>

@@ -227,8 +227,36 @@ body.theme-dark {
 /* KPI Cards Grid */
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* 4 cartões: ajusta sozinho de 4 colunas para 2 ou 1 em telas menores */
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 1.5rem;
+}
+
+/* Benefício do contrato: verde quando pagou mais do que custou, vermelho quando não */
+.badge.badge-positive {
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.35);
+    background-color: rgba(74, 222, 128, 0.08);
+}
+
+.badge.badge-negative {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.35);
+    background-color: rgba(248, 113, 113, 0.08);
+}
+
+/* Equivalência do valor em pontos de sinistralidade, abaixo de cada campo */
+.control-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.scope-note {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--brand-blue-light);
 }
 
 .metric-card {

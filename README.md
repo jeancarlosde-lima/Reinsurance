@@ -1,89 +1,118 @@
 <div align="center">
-  
-# 📊 Simulador de Tratado de Resseguro XL (Excess of Loss)
 
-**Diretoria de Subscrição & Engenharia de Dados**
+# 📊 Simulador de Resseguro — XL Agregado (Aggregate Excess of Loss)
+
+**Carteira de Seguro Rural (Grupo 11) · Subscrição e Engenharia de Dados**
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-%23F7931E.svg?style=for-the-badge&logo=scikit-learn&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 
 </div>
 
 ---
 
-## 🎯 1. Proposta Executiva e Visão Geral
-Este repositório contém o código-fonte do **Simulador de Exposição e Retenção de Resseguro (Modelo Não-Proporcional XL)**, focado nas carteiras agrícolas do Ramo 11 (Seguros Rurais). 
+## 🎯 1. O que é
 
-A proposta central do sistema é fornecer uma **ferramenta analítica de nível institucional (Enterprise)** para subscritores de risco e atuários. O sistema permite testar, em tempo real, o impacto financeiro de diferentes cenários de estruturação de contratos de resseguro, avaliando o balanço entre **Prioridade (Franquia Agregada)** e **Capacidade (Limite Restritivo)**. Além disso, o sistema integra inteligência artificial para simular o comportamento da carteira e a sinistralidade sob estresse climático extremo.
+Simulador de um contrato de **Excesso de Danos Agregado** para uma carteira de seguro rural. O subscritor define a prioridade, a capacidade e a taxa do contrato e vê, em tempo real, quanto o resseguro recupera, quanto ele custa e como fica a sinistralidade líquida da seguradora — num ano normal e num ano de El Niño severo, projetado por um modelo de machine learning.
 
----
+**Por que "agregado":** a prioridade e o limite valem para o sinistro **acumulado do ano** da carteira, não para cada evento. É o mesmo desenho de um Stop Loss em valor, e é diferente de um XL catastrófico por evento, em que a prioridade se aplica a cada ocorrência.
 
-## 💻 2. Interface do Usuário: Telas e Funcionalidades
-
-A aplicação possui uma única página de interface rica (Single Page Application - SPA), operando como um **Enterprise Analytics Dashboard**.
-
-### ⚙️ 2.1. Painel de Controle (Sidebar Lateral)
-Localizado à esquerda, é o centro de comando do simulador:
-- **Prioridade / Franquia (em Milhões R$)**: Campo numérico de entrada onde o atuário define o valor inicial a partir do qual o ressegurador começa a assumir os custos de sinistros.
-- **Capacidade / Limite (em Milhões R$)**: Campo numérico de entrada que estipula o teto (limite máximo) de cobertura financeira oferecido pelo tratado de resseguro.
-- **Unidade Federativa (Agregação)**: Menu suspenso (dropdown) permitindo filtrar as análises financeiras por estado específico da federação, ou visualizar a exposição global agregada em nível nacional.
-- **Toggle de Machine Learning (Catastrophe Modeling)**: Interruptor dinâmico que ativa o modelo de inteligência artificial preditivo. Quando acionado, injeta um cenário catastrófico severo de El Niño, altera o painel visual para o estado de alerta (*Warning Mode*) e recalcula a carteira com base nas inferências e picos de severidade de sinistralidade.
-
-### 📈 2.2. Painel de Visualização (Main Dashboard)
-Localizado à direita, exibe fluidamente os resultados dos cálculos atuariais e cenários (*Hot-Reload*):
-- **KPI - Sinistro Bruto (Loss Ratio)**: Consolida o montante total de perdas geradas pela carteira, advindos das bases oficiais in-memory ou inflados pelo disparo preditivo da IA.
-- **KPI - Retenção Líquida (Seguradora)**: Apresenta o custo retido pela própria seguradora primária (prejuízo final) após o repasse para o ressegurador. 
-  - *Smart Alert Box*: A área do KPI se transmuta alertando perigo vermelho (*Danger Red*) automaticamente via CSS se o índice de Sinistralidade Retida ultrapassar a meta limite atuária de 80%.
-- **KPI - Recuperação RE (Cessão)**: Exibe a parcela financeira capitalizada da resseguradora em observância aos tetos restritivos de Prioridade e Capacidade.
-- **Gráfico de Exposição Financeira (Chart.js)**: Painel gráfico de barras empilhadas que disseca, por estado contábil (UF), o balanceamento de reponsabilidade entre a companhia seguradora primária (fatia reta em vermelho institucional) e a proteção do resseguro XL repassado (fatia top em azul corporativo).
+```
+Recuperação   = min(Capacidade, max(0, Sinistro anual − Prioridade))
+Custo         = Taxa (rate on line) × Capacidade
+Resultado     = Prêmio retido − Custo − (Sinistro − Recuperação)
+Benefício     = Resultado com resseguro − Resultado sem resseguro
+```
 
 ---
 
-## 🏗️ 3. Arquitetura Analítica e Componentes Técnicos
+## 💻 2. Interface
 
-O software opera como um ecossistema *Fullstack* lastreado em infraestrutura Python de backend e JavaScript reativo no frontend, agora servido em modo consolidado.
+### 2.1. Controles
+- **Prioridade agregada anual (R$ milhões)** — o simulador mostra a equivalência em sinistralidade da carteira (ex.: R$ 8.300 mi ≈ 85% de sinistralidade).
+- **Capacidade da camada (R$ milhões)** — em pontos de sinistralidade acima da prioridade.
+- **Taxa do contrato (rate on line)** — prêmio de resseguro como % da capacidade comprada. É o que dá sentido à escolha: sem custo, prioridade zero e capacidade infinita seriam sempre a melhor opção.
+- **Recorte de leitura (UF)** — o contrato é **um só, nacional**. Ao escolher uma UF, o painel mostra a parcela dela no resultado do contrato — nunca um tratado próprio para o estado.
+- **Estresse climático (ML)** — recalcula a carteira sob um El Niño severo antes de aplicar o contrato.
 
-### 🐍 3.1. Arquitetura Backend Integrado e MLOps (Python)
-- **`/backend/susep_scraper.py`**: Motor robótico de ETL (Webscraping). Realiza download volumétrico, abstração e *parsing* da fonte de dados abertos federais da autarquia SUSEP. 
-- **`/backend/ml_engine.py`**: Estágio fundacional de Machine Learning (MLOps). Elabora a engenharia de descritores contextuais de meteorologia extrema simulada treinando um algoritmo nativo de regressores florestais randômicos (`RandomForestRegressor`). Após convergência, exporta o *artifact model* serializado (`cat_model.pkl`).
-- **`/backend/app.py`**: Hub REST transacional montado em **FastAPI** lidando com DataFrames em memória:
-  - **Rota Padrão (`/api/calculate`)**: Avalia a matemática de excesso de perda linear cruzando inputs frontends X CSV do Scraper.
-  - **Rota Preditiva (`/api/predict-stress`)**: Utiliza o modelo preditivo para inflar o Sinistro Bruto com cenários climáticos severos.
-  - **Rota de Estáticos (`/`)**: Carrega e serve nativamente a interface do Dashboard via `StaticFiles`.
-  - *Equação Atuarial Nativa:* $$Recuperação = \min(Capacidade, \max(0, Sinistro Total - Prioridade))$$
+### 2.2. Indicadores
+- **Sinistro Bruto**, com a sinistralidade bruta.
+- **Recuperação do Resseguro**.
+- **Custo do Resseguro**, com o **benefício** do contrato no cenário: negativo num ano bom (é o preço da proteção), positivo quando a camada é acionada.
+- **Retenção Líquida**, com a sinistralidade líquida (sobre o prêmio líquido do custo do resseguro) e alerta acima de 80%.
+- **Gráfico por UF** — a recuperação do contrato nacional é rateada pelo sinistro de cada estado; o custo, pelo prêmio.
 
-### 🎨 3.2. Engenharia de Frontend (Vanilla JS / CSS Moderno)
-- **`/frontend/index.html` e `style.css`**: Design system sofisticado edificado em paletas Dark Theme com alto contraste para mitigação de fadiga visual, usando CSS Flexbox/Grid e injeções de SVG interativos.
-- **`/frontend/app.js`**: Controlador de interface implementando Padrão Modular (State/Networking/UI Controller) com um agendador de *Debounce* otimizado enviando *Single HTTP Payloads*. Utiliza dinamicamente a biblioteca **Chart.js** no canvas visual.
+### 2.3. O que o simulador mostra com os parâmetros padrão
+
+| Cenário | Sinistralidade | Recupera | Custa | Benefício | Sinistralidade líquida |
+|---|---|---|---|---|---|
+| Ano normal | 81,6% | R$ 0 | R$ 290 mi | −R$ 290 mi | 84,1% |
+| El Niño severo | 132,3% | R$ 2,90 bi | R$ 290 mi | +R$ 2,61 bi | 105,7% |
+
+Prioridade R$ 8.300 mi (≈ 85% de sinistralidade), capacidade R$ 2.900 mi, taxa de 10%.
 
 ---
 
-## 🚀 4. Guia de Implantação e Render Deploy
+## 🏗️ 3. Arquitetura
 
-O projeto foi consolidado para simplificar implantações em nuvem (ex: Render, Heroku, Railway) com `requirements.txt` estrututado na raiz do repositório.
+### 3.1. Backend (Python)
+- **`backend/susep_scraper.py`** — tenta baixar a base aberta de estatísticas da SUSEP e filtrar o grupo rural; se o portal estiver indisponível, gera uma carteira paramétrica com a participação aproximada de cada UF no prêmio agrícola.
+- **`backend/ml_engine.py`** — treina uma `RandomForestRegressor` sobre dados climáticos sintéticos (anomalia do El Niño, precipitação e UF) e exporta `cat_model.pkl`. O alvo é a **sinistralidade**, não o sinistro em reais (ver seção 4).
+- **`backend/app.py`** — API em **FastAPI**:
+  - `POST /api/calculate` — aplica o contrato à carteira.
+  - `POST /api/predict-stress` — projeta a sinistralidade de cada linha sob El Niño severo, multiplica pelo prêmio real e aplica o contrato.
+  - `GET /` — serve o painel.
 
-### ☁️ Como Fazer o Deploy no Render.com
+### 3.2. Frontend (JavaScript puro)
+- **`frontend/app.js`** — estado, rede e interface separados, com *debounce* nas entradas e **Chart.js** no gráfico por UF.
 
-1. Crie um novo Web Service ligado ao seu repositório no GitHub.
-2. Defina os seguintes parâmetros na interface gráfica do Render:
-   - **Environment:** `Python 3`
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`
-3. A aplicação executará o FastAPI servindo o JSON do Backend juntamente com todo o HTML/JS/CSS da pasta Frontend sob a mesma porta.
+---
 
-### 💻 Como Rodar Localmente
+## 🔧 4. Correções de lógica de resseguro
 
-1. Navegue pelo terminal até a pasta raiz `resseguro-xl-analytics`.
-2. Instale as dependências executando:
-   ```powershell
-   pip install -r requirements.txt
-   ```
-3. Suba o servidor com o uvicorn nativo ativando o backend e o frontend vinculados simultaneamente:
-   ```powershell
-   uvicorn backend.app:app --host 0.0.0.0 --port 8000
-   ```
-4. Acesse seu dashboard local via `http://localhost:8000/`.
+Revisão feita sobre a primeira versão. Cada item foi medido antes e depois.
+
+**1. O estresse climático quase não atingia os estados mais expostos.**
+O modelo previa o sinistro em reais usando o prêmio como variável. O treino só via prêmios de R$ 10 mi a R$ 100 mi por mês, mas o RS tem R$ 274 mi — e árvore de decisão não extrapola: a previsão travava em R$ 153 mi, qualquer que fosse o prêmio. No cenário de granizo no Sul, o RS ia de 52% para só 56% de sinistralidade, enquanto SP ia para 198%.
+Além disso, os estados fora do Sul recebiam 30 mm de chuva, abaixo da faixa de treino deles (50–300 mm), e caíam no regime de seca aprendido com RS e PR.
+→ O modelo passou a prever a **sinistralidade**, multiplicada pelo prêmio real, e o cenário usa entradas dentro da faixa de treino. Agora: **RS e PR ≈ 152%** (granizo), demais estados **≈ 103%** (calor).
+
+**2. O resseguro saía de graça.**
+Sem prêmio de resseguro, prioridade zero e capacidade infinita eram sempre a melhor escolha, e o simulador não mostrava o equilíbrio entre prioridade e capacidade.
+→ Entrou a **taxa do contrato (rate on line)**, com custo, resultado líquido e benefício. Com prioridade zero e capacidade ilimitada, num ano normal, o contrato agora custa mais do que recupera.
+
+**3. O filtro por UF mudava o contrato.**
+Na visão nacional, a recuperação era rateada entre os estados; ao filtrar uma UF, a prioridade e o limite inteiros eram reaplicados só a ela — dois contratos diferentes para a mesma leitura.
+→ O contrato é sempre nacional e a UF recebe a sua parcela. A soma das parcelas bate exatamente com o total nacional.
+
+**4. O nome não correspondia ao contrato.**
+A prioridade é aplicada ao sinistro anual acumulado, o que é um **XL agregado** — não um XL catastrófico por evento, como os rótulos anteriores sugeriam.
+→ Nomes, textos e valores padrão ajustados. Os padrões antigos (prioridade de R$ 20 mi e capacidade de R$ 50 mi numa carteira com R$ 7,9 bi de sinistro anual) consumiam a camada inteira em qualquer cenário.
+
+---
+
+## ⚠️ 5. Premissas e limitações
+
+- A carteira usada é **paramétrica** (fallback do scraper), com proporções aproximadas de mercado — não é a base oficial da SUSEP.
+- O modelo climático é treinado em **dados sintéticos**; ele demonstra o método, não substitui um modelo catastrófico calibrado.
+- Não há cessão proporcional antes do XL: o prêmio retido é igual ao prêmio ganho.
+- Sem reintegrações (reinstatements) e sem cláusula de participação nos lucros.
+- No caminho de dados reais da SUSEP, o mapeamento de colunas ainda precisa ser validado contra o dicionário oficial da base.
+
+---
+
+## 🚀 6. Como rodar
+
+### Localmente
+```powershell
+pip install -r requirements.txt
+python backend/ml_engine.py        # (re)treina o modelo de estresse
+uvicorn backend.app:app --host 0.0.0.0 --port 8000
+```
+Acesse `http://localhost:8000/`.
+
+### Deploy no Render.com
+1. Crie um Web Service ligado a este repositório.
+2. **Environment:** `Python 3` · **Build Command:** `pip install -r requirements.txt` · **Start Command:** `uvicorn backend.app:app --host 0.0.0.0 --port $PORT`

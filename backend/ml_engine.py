@@ -74,13 +74,21 @@ def generate_synthetic_climate_data(n_samples=5000):
     return df
 
 def train_and_export_model():
-    print("\n--- Iniciando Pipeline de MLOps (Catastrophe Modeling) ---")
+    print("\n--- Iniciando treino do modelo de estresse climático ---")
     df = generate_synthetic_climate_data(n_samples=10000)
-    
-    # Separando Features (X) e Target (y)
-    # y = Sinistro_Bruto. Note que o modelo usará UF, Anomalia, Precipitacao E Premio_Ganho para prever.
-    X = df.drop(columns=['Sinistro_Bruto'])
-    y = df['Sinistro_Bruto']
+
+    # Alvo = SINISTRALIDADE (sinistro / prêmio), não o sinistro em reais.
+    #
+    # Antes o modelo previa o sinistro em R$ usando o prêmio como variável.
+    # O treino só via prêmios de R$ 10M a R$ 100M, mas a carteira real tem
+    # estados acima de R$ 270M/mês — e árvore de decisão não extrapola: a
+    # previsão travava no teto do treino. Resultado: RS e PR, os mais
+    # expostos ao granizo, saíam do "Super El Niño" quase sem estresse.
+    #
+    # Prevendo a sinistralidade, o clima define a taxa de perda e o tamanho
+    # do estado entra só depois, multiplicando pelo prêmio real (app.py).
+    y = df['Sinistro_Bruto'] / df['Premio_Ganho']
+    X = df.drop(columns=['Sinistro_Bruto', 'Premio_Ganho'])
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
@@ -95,13 +103,14 @@ def train_and_export_model():
     rmse = np.sqrt(mean_squared_error(y_test, predictions))
     r2 = r2_score(y_test, predictions)
     
-    print(f" - RMSE (Erro Médio): {rmse:,.2f}")
+    print(f" - RMSE (pontos de sinistralidade): {rmse * 100:,.1f} p.p.")
     print(f" - R² Score: {r2:.4f}")
-    
-    # Salva o pipeline pre-treinado junto com as colunas pra garantir o fit do schema
+
+    # Salva o modelo junto com as colunas, para a inferência montar o mesmo schema
     metadata = {
         'model': model,
-        'features': list(X.columns)
+        'features': list(X.columns),
+        'alvo': 'sinistralidade',
     }
     
     print(f"\nPersistindo artefato binário do modelo em: {MODEL_PATH}")
